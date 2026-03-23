@@ -1,7 +1,9 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -283,7 +285,7 @@ public class FuelSim {
 
     private ArrayList<Fuel> fuels = new ArrayList<Fuel>();
     private boolean running = false;
-    private Supplier<Pose2d> robotSupplier = null;
+    private Supplier<Pose3d> robotSupplier = null;
     private Supplier<ChassisSpeeds> robotSpeedsSupplier = null;
     private double robotWidth; // size along the robot's y axis
     private double robotLength; // size along the robot's x axis
@@ -399,7 +401,7 @@ public class FuelSim {
             double width,
             double length,
             double bumperHeight,
-            Supplier<Pose2d> poseSupplier,
+            Supplier<Pose3d> poseSupplier,
             Supplier<ChassisSpeeds> fieldSpeedsSupplier) {
         this.robotSupplier = poseSupplier;
         this.robotSpeedsSupplier = fieldSpeedsSupplier;
@@ -447,8 +449,8 @@ public class FuelSim {
         fuels.add(new Fuel(pos, vel));
     }
 
-    private void handleRobotCollision(Fuel fuel, Pose2d robot, Translation2d robotVel) {
-        Translation2d relativePos = new Pose2d(fuel.pos.toTranslation2d(), Rotation2d.kZero)
+    private void handleRobotCollision(Fuel fuel, Pose3d robot, Translation3d robotVel) {
+        Translation3d relativePos = new Pose3d(fuel.pos, Rotation3d.kZero)
                 .relativeTo(robot)
                 .getTranslation();
 
@@ -461,37 +463,37 @@ public class FuelSim {
         // not inside robot
         if (distanceToBottom > 0 || distanceToTop > 0 || distanceToRight > 0 || distanceToLeft > 0) return;
 
-        Translation2d posOffset;
+        Translation3d posOffset;
         // find minimum distance to side and send corresponding collision response
         if ((distanceToBottom >= distanceToTop
                 && distanceToBottom >= distanceToRight
                 && distanceToBottom >= distanceToLeft)) {
-            posOffset = new Translation2d(distanceToBottom, 0);
+            posOffset = new Translation3d(distanceToBottom, 0, 0);
         } else if ((distanceToTop >= distanceToBottom
                 && distanceToTop >= distanceToRight
                 && distanceToTop >= distanceToLeft)) {
-            posOffset = new Translation2d(-distanceToTop, 0);
+            posOffset = new Translation3d(-distanceToTop, 0, 0);
         } else if ((distanceToRight >= distanceToBottom
                 && distanceToRight >= distanceToTop
                 && distanceToRight >= distanceToLeft)) {
-            posOffset = new Translation2d(0, distanceToRight);
+            posOffset = new Translation3d(0, distanceToRight, 0);
         } else {
-            posOffset = new Translation2d(0, -distanceToLeft);
+            posOffset = new Translation3d(0, -distanceToLeft, 0);
         }
 
         posOffset = posOffset.rotateBy(robot.getRotation());
-        fuel.pos = fuel.pos.plus(new Translation3d(posOffset));
-        Translation2d normal = posOffset.div(posOffset.getNorm());
-        if (fuel.vel.toTranslation2d().dot(normal) < 0)
+        fuel.pos = fuel.pos.plus(posOffset);
+        Translation3d normal = posOffset.div(posOffset.getNorm());
+        if (fuel.vel.dot(normal) < 0)
             fuel.addImpulse(
-                    new Translation3d(normal.times(-fuel.vel.toTranslation2d().dot(normal) * (1 + ROBOT_COR))));
-        if (robotVel.dot(normal) > 0) fuel.addImpulse(new Translation3d(normal.times(robotVel.dot(normal))));
+                    normal.times(-fuel.vel.dot(normal) * (1 + ROBOT_COR)));
+        if (robotVel.dot(normal) > 0) fuel.addImpulse(normal.times(robotVel.dot(normal)));
     }
 
     private void handleRobotCollisions(ArrayList<Fuel> fuels) {
-        Pose2d robot = robotSupplier.get();
+        Pose3d robot = robotSupplier.get();
         ChassisSpeeds speeds = robotSpeedsSupplier.get();
-        Translation2d robotVel = new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+        Translation3d robotVel = new Translation3d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, 0);
 
         for (Fuel fuel : fuels) {
             handleRobotCollision(fuel, robot, robotVel);
@@ -499,10 +501,10 @@ public class FuelSim {
     }
 
     private void handleIntakes(ArrayList<Fuel> fuels) {
-        Pose2d robot = robotSupplier.get();
+        Pose3d robot = robotSupplier.get();
         for (SimIntake intake : intakes) {
             for (int i = 0; i < fuels.size(); i++) {
-                if (intake.shouldIntake(fuels.get(i), robot)) {
+                if (intake.shouldIntake(fuels.get(i), robot.toPose2d())) {
                     fuels.remove(i);
                     i--;
                 }

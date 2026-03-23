@@ -16,7 +16,10 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
   }
-
+  @Override
+  public void simulationPeriodic(){
+        FuelSim.getInstance().updateSim();
+  }
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
@@ -69,4 +72,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testExit() {}
+
+  
 }

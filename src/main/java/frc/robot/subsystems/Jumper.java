@@ -32,7 +32,7 @@ public class Jumper extends SubsystemBase {
             // -x.getAsDouble() * 0.01, 0));
             // rotation = rotation.plus(new Rotation3d(0,-pitch.getAsDouble() * 0.1,
             // -rot.getAsDouble() * 0.005));
-            pose = pose.plus(new Transform3d(-MathUtil.applyDeadband(y.getAsDouble(), 0.015) * 0.01, -MathUtil.applyDeadband(x.getAsDouble(), 0.15) * 0.1, 0,
+            pose = pose.plus(new Transform3d(2 * -MathUtil.applyDeadband(y.getAsDouble(), 0.15) * 0.1, 2 * -MathUtil.applyDeadband(x.getAsDouble(), 0.15) * 0.1, 0,
                     new Rotation3d(0, MathUtil.applyDeadband(pitch.getAsDouble(), 0.15) * 0.01, MathUtil.applyDeadband(rot.getAsDouble(), 0.15) * 0.1)));
         }, this);
     }
