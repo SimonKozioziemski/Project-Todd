@@ -31,13 +31,12 @@ public class RobotContainer {
     controller.a().whileTrue(
         flyfly.jump());
     controller.y().onTrue(flyfly.flyToHub());
-    controller.leftTrigger().whileTrue(
-      // Commands.repeatingSequence(
-      //   new InstantCommand(() -> launchFuel()),
-      //   Commands.waitSeconds(1)
-      // )
-        new InstantCommand(() -> launchFuel())
+    controller.rightTrigger().whileTrue(
+      flyfly.shoot()
+        // new InstantCommand(() -> launchFuel())
     );
+
+    controller.povUp().onTrue(flyfly.dash());
     // populateCrowd();
     // controller.
   }
@@ -59,7 +58,7 @@ public class RobotContainer {
 
   public void configureFuelSim() {
     FuelSim instance = FuelSim.getInstance();
-    instance.spawnStartingFuel();
+    // instance.spawnStartingFuel();
     // Register a robot for collision with fuel
     FuelSim.getInstance().registerRobot(
         0.902, // from left to right
@@ -81,13 +80,5 @@ public class RobotContainer {
 
   }
 
-  public void launchFuel() {
-    Translation3d initialPosition = new Translation3d(flyfly.whereIsFlyFly().getX(),
-        flyfly.whereIsFlyFly().getY(), 0.3);
-        // initialPosition = new Translation3d(5,5, 5);
-    double vx = Math.cos(this.flyfly.whereIsFlyFly().getRotation().getZ()) * 4;
-    double vy = Math.sin(this.flyfly.whereIsFlyFly().getRotation().getZ()) * 4;
-    Translation3d velocity = new Translation3d(0, 0, 8);
-    FuelSim.getInstance().spawnFuel(initialPosition, velocity);
-  }
+  
 }
